@@ -28,11 +28,11 @@ unsafe impl Send for Context {}
 impl Context {
     /// Opens a new `libusb` context.
     pub fn new() -> ::Result<Self> {
-        let mut context = unsafe { mem::uninitialized() };
+        let mut context =  mem::MaybeUninit::uninit().as_mut_ptr() ;
 
         try_unsafe!(libusb_init(&mut context));
 
-        Ok(Context { context: context })
+        Ok(Context { context })
     }
 
     /// Sets the log level of a `libusb` context.
@@ -71,7 +71,7 @@ impl Context {
 
     /// Returns a list of the current USB devices. The context must outlive the device list.
     pub fn devices<'a>(&'a self) -> ::Result<DeviceList<'a>> {
-        let mut list: *const *mut libusb_device = unsafe { mem::uninitialized() };
+        let mut list: *const *mut libusb_device = unsafe { mem::MaybeUninit::uninit().assume_init_mut() };
 
         let n = unsafe { libusb_get_device_list(self.context, &mut list) };
 
